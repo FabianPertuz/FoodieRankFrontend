@@ -1,191 +1,95 @@
 async function loadRestaurantReviews(restaurantId) {
-    try {
-        const response = await fetch(`${API_BASE}/restaurants/${restaurantId}/reviews`);
-        if (response.ok) {
-            const reviews = await response.json();
-            displayReviews(reviews);
-        }
-    } catch (error) {
-        console.error('Error cargando reseñas:', error);
-    }
+  try {
+    const reviews = await api.get(`/restaurants/${restaurantId}/reviews`);
+    displayReviews(reviews);
+  } catch (error) {
+    console.error('Error cargando reseñas:', error);
+  }
 }
 
 function displayReviews(reviews) {
-    const container = document.getElementById('reviewsList');
-    
-    if (reviews.length === 0) {
-        container.innerHTML = '<p class="no-reviews">Aún no hay reseñas para este restaurante.</p>';
-        return;
-    }
+  const container = document.getElementById('reviewsList');
+  
+  if (!reviews || reviews.length === 0) {
+    container.innerHTML = '<p class="no-reviews">Aún no hay reseñas para este restaurante.</p>';
+    return;
+  }
 
-    container.innerHTML = reviews.map(review => `
-        <div class="review-card">
-            <div class="review-header">
-                <div class="reviewer-info">
-                    <strong>${review.userId.name}</strong>
-                    <div class="stars">${generateStars(review.rating)}</div>
-                </div>
-                <span class="review-date">${formatDate(review.createdAt)}</span>
-            </div>
-            
-            <p class="review-comment">${review.comment}</p>
-            
-            <div class="review-actions">
-                <button class="btn-like ${review.userLiked ? 'liked' : ''}" 
-                        onclick="handleReviewReaction('${review._id}', 'like')"
-                        ${review.userId._id === currentUser?._id ? 'disabled' : ''}>
-                    <i class="fas fa-thumbs-up"></i>
-                    <span>${review.likes || 0}</span>
-                </button>
-                
-                <button class="btn-dislike ${review.userDisliked ? 'disliked' : ''}" 
-                        onclick="handleReviewReaction('${review._id}', 'dislike')"
-                        ${review.userId._id === currentUser?._id ? 'disabled' : ''}>
-                    <i class="fas fa-thumbs-down"></i>
-                    <span>${review.dislikes || 0}</span>
-                </button>
-
-                ${review.userId._id === currentUser?._id ? `
-                    <button class="btn-edit" onclick="editReview('${review._id}')">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button class="btn-delete" onclick="deleteReview('${review._id}')">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                ` : ''}
-            </div>
+  container.innerHTML = reviews.map(review => `
+    <div class="review-card">
+      <div class="review-header">
+        <div class="reviewer-info">
+          <strong>${review.userId?.name || 'Usuario anónimo'}</strong>
+          <div class="stars">${generateStars(review.rating)}</div>
         </div>
-    `).join('');
-}
-
-function showAddReviewModal(restaurantId) {
-    const modalContent = `
-        <h2>Agregar Reseña</h2>
-        <form id="addReviewForm">
-            <input type="hidden" name="restaurantId" value="${restaurantId}">
-            
-            <div class="form-group">
-                <label>Calificación</label>
-                <div class="rating-input">
-                    ${[1,2,3,4,5].map(star => `
-                        <i class="fas fa-star rating-star" data-rating="${star}"></i>
-                    `).join('')}
-                </div>
-                <input type="hidden" name="rating" id="selectedRating" required>
-            </div>
-
-            <div class="form-group">
-                <label for="comment">Comentario</label>
-                <textarea name="comment" id="comment" rows="4" placeholder="Comparte tu experiencia..." required></textarea>
-            </div>
-
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button type="submit" class="btn-primary">Publicar Reseña</button>
-            </div>
-        </form>
-    `;
-
-    showModal(modalContent);
-    setupRatingStars();
-    setupReviewForm();
-}
-
-function setupRatingStars() {
-    const stars = document.querySelectorAll('.rating-star');
-    let selectedRating = 0;
-
-    stars.forEach(star => {
-        star.addEventListener('mouseover', function() {
-            const rating = parseInt(this.getAttribute('data-rating'));
-            highlightStars(rating);
-        });
-
-        star.addEventListener('mouseout', function() {
-            highlightStars(selectedRating);
-        });
-
-        star.addEventListener('click', function() {
-            selectedRating = parseInt(this.getAttribute('data-rating'));
-            document.getElementById('selectedRating').value = selectedRating;
-            highlightStars(selectedRating);
-        });
-    });
-
-    function highlightStars(rating) {
-        stars.forEach((star, index) => {
-            if (index < rating) {
-                star.classList.add('filled');
-            } else {
-                star.classList.remove('filled');
-            }
-        });
-    }
-}
-
-function setupReviewForm() {
-    const form = document.getElementById('addReviewForm');
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+        <span class="review-date">${formatDate(review.createdAt)}</span>
+      </div>
+      
+      <p class="review-comment">${review.comment}</p>
+      
+      <div class="review-actions">
+        <button class="btn-like ${review.userLiked ? 'liked' : ''}" 
+                onclick="handleReviewReaction('${review._id}', 'like')"
+                ${review.userId?._id === currentUser?._id ? 'disabled' : ''}>
+          <i class="fas fa-thumbs-up"></i>
+          <span>${review.likes || 0}</span>
+        </button>
         
-        const formData = new FormData(this);
-        const data = {
-            restaurantId: formData.get('restaurantId'),
-            rating: parseInt(formData.get('rating')),
-            comment: formData.get('comment')
-        };
+        <button class="btn-dislike ${review.userDisliked ? 'disliked' : ''}" 
+                onclick="handleReviewReaction('${review._id}', 'dislike')"
+                ${review.userId?._id === currentUser?._id ? 'disabled' : ''}>
+          <i class="fas fa-thumbs-down"></i>
+          <span>${review.dislikes || 0}</span>
+        </button>
 
-        try {
-            const response = await fetch(`${API_BASE}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                closeModal();
-                showMessage('Reseña publicada exitosamente', 'success');
-
-                const restaurantId = data.restaurantId;
-                loadRestaurantReviews(restaurantId);
-            } else {
-                const error = await response.json();
-                showMessage(error.error || 'Error publicando reseña', 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showMessage('Error de conexión', 'error');
-        }
-    });
+        ${review.userId?._id === currentUser?._id ? `
+          <button class="btn-edit" onclick="editReview('${review._id}')">
+            <i class="fas fa-edit"></i> Editar
+          </button>
+          <button class="btn-delete" onclick="deleteReview('${review._id}')">
+            <i class="fas fa-trash"></i> Eliminar
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
 }
 
+// Enviar reseña
+async function submitReview(reviewData) {
+  try {
+    const newReview = await api.post('/reviews', reviewData);
+    showMessage('Reseña publicada exitosamente', 'success');
+    return newReview;
+  } catch (error) {
+    showMessage('Error publicando reseña: ' + error.message, 'error');
+    throw error;
+  }
+}
+
+// Manejar likes/dislikes - AJUSTADO para tus endpoints
 async function handleReviewReaction(reviewId, reaction) {
-    if (!isAuthenticated()) {
-        showMessage('Debes iniciar sesión para reaccionar', 'warning');
-        return;
+  if (!isAuthenticated()) {
+    showMessage('Debes iniciar sesión para reaccionar', 'warning');
+    return;
+  }
+
+  try {
+    const endpoint = reaction === 'like' ? `/reviews/${reviewId}/like` : `/reviews/${reviewId}/dislike`;
+    await api.post(endpoint);
+    
+    // Recargar reseñas para ver cambios
+    const restaurantId = getCurrentRestaurantId(); // Necesitas implementar esto
+    if (restaurantId) {
+      loadRestaurantReviews(restaurantId);
     }
+  } catch (error) {
+    showMessage('Error al procesar reacción: ' + error.message, 'error');
+  }
+}
 
-    try {
-        const response = await fetch(`${API_BASE}/reviews/${reviewId}/${reaction}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        if (response.ok) {
-
-            const restaurantDetail = document.querySelector('.restaurant-detail');
-            if (restaurantDetail) {
-
-                window.location.reload();
-            }
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showMessage('Error al procesar reacción', 'error');
-    }
+// Función auxiliar para obtener el restaurantId actual
+function getCurrentRestaurantId() {
+  // Implementar según cómo manejes el estado actual
+  return sessionStorage.getItem('currentRestaurantId');
 }

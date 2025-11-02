@@ -1,9 +1,61 @@
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = 'http://localhost:4000/api/v1';
 
 let currentUser = null;
 let currentPage = 'home';
+// Función para descubrir automáticamente las rutas del backend
+async function discoverBackendRoutes() {
+  console.log('🔍 Descubriendo rutas del backend...');
+  
+  const possibleRoutes = [
+    // Diferentes patrones comunes
+    '/api/v1/categories',
+    '/api/v1/restaurants',
+    '/api/categories', 
+    '/api/restaurants',
+    '/categories',
+    '/restaurants',
+    '/api/v1/auth/login',
+    '/api/auth/login',
+    '/auth/login'
+  ];
+  
+  const workingRoutes = {};
+  
+  for (const route of possibleRoutes) {
+    try {
+      const response = await fetch(`http://localhost:4000${route}`);
+      console.log(`Testing: ${route} → ${response.status}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        workingRoutes[route] = {
+          status: response.status,
+          data: data
+        };
+        console.log(`✅ ${route} - FUNCIONA`);
+      }
+    } catch (error) {
+      console.log(`❌ ${route} - Error: ${error.message}`);
+    }
+  }
+  
+  console.log('🎯 Rutas que funcionan:', workingRoutes);
+  return workingRoutes;
+}
 
+// Ejecutar al cargar
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Inicializando FoodieRank Frontend...');
+  
+  // Descubrir rutas automáticamente
+  discoverBackendRoutes();
+  
+  // Inicializar la app normalmente
+  initializeApp();
+  setupEventListeners(); 
+  checkAuthStatus();
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -11,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAuthStatus();
 });
 
-function initializeApp() {
+function initializeApp() {  
 
     showPage('home');
 }
@@ -199,3 +251,31 @@ function generateStars(rating) {
     }
     return stars.join('');
 }
+// Prueba de conexión MEJORADA
+async function testAPIConnection() {
+  const tests = [
+    { name: 'Categorías', endpoint: '/categories' },
+    { name: 'Restaurantes', endpoint: '/restaurants' },
+    { name: 'Health Check', endpoint: '/health' }
+  ];
+
+  for (const test of tests) {
+    try {
+      console.log(`🧪 Probando ${test.name}...`);
+      const result = await api.get(test.endpoint);
+      console.log(`✅ ${test.name}:`, result.length || 'OK');
+    } catch (error) {
+      console.log(`⚠️  ${test.name}: ${error.message}`);
+    }
+  }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Inicializando FoodieRank Frontend...');
+  console.log('📍 API Base:', API_BASE);
+  
+  setTimeout(() => {
+    testAPIConnection();
+  }, 1000);
+});
