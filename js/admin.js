@@ -14,6 +14,7 @@ async function loadAdminCategories() {
 
 function displayAdminCategories(categories) {
   const container = document.getElementById('categoriesList');
+  if (!container) return;
   
   container.innerHTML = categories.map(category => `
     <div class="admin-item">
@@ -36,7 +37,7 @@ function displayAdminCategories(categories) {
 
 async function loadPendingRestaurants() {
   try {
-    // Asumiendo que tienes un endpoint para restaurantes pendientes
+
     const pending = await api.get('/restaurants?status=pending');
     displayPendingRestaurants(pending);
   } catch (error) {
@@ -46,6 +47,7 @@ async function loadPendingRestaurants() {
 
 function displayPendingRestaurants(restaurants) {
   const container = document.getElementById('pendingRestaurants');
+  if (!container) return;
   
   if (!restaurants || restaurants.length === 0) {
     container.innerHTML = '<p>No hay restaurantes pendientes de aprobación.</p>';
@@ -71,4 +73,17 @@ function displayPendingRestaurants(restaurants) {
       </div>
     </div>
   `).join('');
+}
+
+
+function editCategory(categoryId) {
+  showMessage('Función de editar categoría pronto disponible', 'info');
+}
+
+function deleteCategory(categoryId) {
+  showMessage('Función de eliminar categoría pronto disponible', 'info');
+}
+
+function rejectRestaurant(restaurantId) {
+  showMessage('Función de rechazar restaurante pronto disponible', 'info');
 }

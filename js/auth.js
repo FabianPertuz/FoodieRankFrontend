@@ -1,16 +1,56 @@
+let isLoginMode = true;
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeAuthForm();
+});
+
+function initializeAuthForm() {
+  const authForm = document.getElementById('authForm');
+  const authSwitchBtn = document.getElementById('authSwitchBtn');
+  const authSwitchText = document.getElementById('authSwitchText');
+  const authTitle = document.getElementById('authTitle');
+  const authButton = document.getElementById('authButton');
+  const nameGroup = document.getElementById('nameGroup');
+
+  if (authForm) {
+    authForm.addEventListener('submit', handleAuthSubmit);
+  }
+
+  if (authSwitchBtn) {
+    authSwitchBtn.addEventListener('click', function() {
+      isLoginMode = !isLoginMode;
+      
+      if (isLoginMode) {
+        authTitle.textContent = 'Iniciar Sesión';
+        authButton.textContent = 'Iniciar Sesión';
+        authSwitchText.textContent = '¿No tienes cuenta?';
+        authSwitchBtn.textContent = 'Regístrate';
+        if (nameGroup) nameGroup.style.display = 'none';
+      } else {
+        authTitle.textContent = 'Crear Cuenta';
+        authButton.textContent = 'Registrarse';
+        authSwitchText.textContent = '¿Ya tienes cuenta?';
+        authSwitchBtn.textContent = 'Inicia Sesión';
+        if (nameGroup) nameGroup.style.display = 'block';
+      }
+    });
+  }
+}
+
 async function handleAuthSubmit(e) {
   e.preventDefault();
   
   const formData = new FormData(e.target);
   
-  // Estructura que espera tu backend
+
   const data = {
     email: formData.get('email'),
     password: formData.get('password')
   };
 
   if (!isLoginMode) {
-    data.name = formData.get('name');
+    data.nombre = formData.get('name');
   }
 
   try {
@@ -20,7 +60,7 @@ async function handleAuthSubmit(e) {
     const result = await api.post(endpoint, data);
     console.log('📥 Respuesta de autenticación:', result);
 
-    // Tu backend debería devolver un token
+   
     if (result.token) {
       localStorage.setItem('token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));

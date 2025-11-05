@@ -1,12 +1,10 @@
 let restaurants = [];
-let categories = [];
 
 async function loadRestaurants() {
   try {
-    const endpoint = getEndpoint('restaurants');
-    console.log(`🔄 Cargando restaurantes desde: ${endpoint}`);
+    console.log('🔄 Cargando restaurantes...');
     
-    const restaurants = await api.get(endpoint);
+    const restaurants = await api.get('/restaurants');
     displayRestaurants(restaurants);
   } catch (error) {
     console.error('❌ Error cargando restaurantes:', error);
@@ -16,18 +14,20 @@ async function loadRestaurants() {
 
 async function loadCategories() {
   try {
-    const endpoint = getEndpoint('categories');
-    console.log(`🔄 Cargando categorías desde: ${endpoint}`);
+    console.log('🔄 Cargando categorías...');
     
-    const categories = await api.get(endpoint);
+    const categoriesData = await api.get('/categories');
+    categories = categoriesData; 
     populateCategoryFilter(categories);
   } catch (error) {
     console.error('❌ Error cargando categorías:', error);
   }
 }
 
-function populateCategoryFilter() {
+function populateCategoryFilter(categories) {
   const filter = document.getElementById('categoryFilter');
+  if (!filter) return;
+  
   filter.innerHTML = '<option value="">Todas las categorías</option>';
   
   categories.forEach(category => {
@@ -38,11 +38,12 @@ function populateCategoryFilter() {
   });
 }
 
-// Mostrar restaurantes - AJUSTADO para tu estructura de datos
+
 function displayRestaurants(restaurantsToShow) {
   const grid = document.getElementById('restaurantsGrid');
+  if (!grid) return;
   
-  if (restaurantsToShow.length === 0) {
+  if (!restaurantsToShow || restaurantsToShow.length === 0) {
     grid.innerHTML = '<div class="no-results">No se encontraron restaurantes</div>';
     return;
   }
@@ -72,7 +73,7 @@ function displayRestaurants(restaurantsToShow) {
   `).join('');
 }
 
-// Detalle del restaurante
+
 async function showRestaurantDetail(restaurantId) {
   try {
     const restaurant = await api.get(`/restaurants/${restaurantId}`);
@@ -85,6 +86,7 @@ async function showRestaurantDetail(restaurantId) {
 
 function displayRestaurantDetail(restaurant) {
   const container = document.getElementById('restaurantDetail');
+  if (!container) return;
   
   container.innerHTML = `
     <div class="restaurant-detail">
@@ -135,7 +137,7 @@ function displayRestaurantDetail(restaurant) {
   loadRestaurantReviews(restaurant._id);
 }
 
-// Función para aprobar restaurante (admin)
+
 async function approveRestaurant(restaurantId) {
   try {
     await api.patch(`/restaurants/${restaurantId}`, { status: 'approved' });
@@ -143,5 +145,17 @@ async function approveRestaurant(restaurantId) {
     showPage('restaurants');
   } catch (error) {
     showMessage('Error aprobando restaurante: ' + error.message, 'error');
+  }
+}
+
+function showAddReviewModal(restaurantId) {
+  showMessage('Función de agregar reseña pronto disponible', 'info');
+}
+
+function loadRestaurantReviews(restaurantId) {
+
+  const reviewsList = document.getElementById('reviewsList');
+  if (reviewsList) {
+    reviewsList.innerHTML = '<p>Las reseñas se cargarán pronto...</p>';
   }
 }

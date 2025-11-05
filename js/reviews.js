@@ -9,6 +9,7 @@ async function loadRestaurantReviews(restaurantId) {
 
 function displayReviews(reviews) {
   const container = document.getElementById('reviewsList');
+  if (!container) return;
   
   if (!reviews || reviews.length === 0) {
     container.innerHTML = '<p class="no-reviews">Aún no hay reseñas para este restaurante.</p>';
@@ -55,7 +56,7 @@ function displayReviews(reviews) {
   `).join('');
 }
 
-// Enviar reseña
+
 async function submitReview(reviewData) {
   try {
     const newReview = await api.post('/reviews', reviewData);
@@ -67,7 +68,7 @@ async function submitReview(reviewData) {
   }
 }
 
-// Manejar likes/dislikes - AJUSTADO para tus endpoints
+
 async function handleReviewReaction(reviewId, reaction) {
   if (!isAuthenticated()) {
     showMessage('Debes iniciar sesión para reaccionar', 'warning');
@@ -77,9 +78,8 @@ async function handleReviewReaction(reviewId, reaction) {
   try {
     const endpoint = reaction === 'like' ? `/reviews/${reviewId}/like` : `/reviews/${reviewId}/dislike`;
     await api.post(endpoint);
-    
-    // Recargar reseñas para ver cambios
-    const restaurantId = getCurrentRestaurantId(); // Necesitas implementar esto
+
+    const restaurantId = getCurrentRestaurantId();
     if (restaurantId) {
       loadRestaurantReviews(restaurantId);
     }
@@ -88,8 +88,16 @@ async function handleReviewReaction(reviewId, reaction) {
   }
 }
 
-// Función auxiliar para obtener el restaurantId actual
+function editReview(reviewId) {
+  showMessage('Función de editar reseña pronto disponible', 'info');
+}
+
+function deleteReview(reviewId) {
+  showMessage('Función de eliminar reseña pronto disponible', 'info');
+}
+
 function getCurrentRestaurantId() {
-  // Implementar según cómo manejes el estado actual
-  return sessionStorage.getItem('currentRestaurantId');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('restaurantId') || sessionStorage.getItem('currentRestaurantId');
 }
